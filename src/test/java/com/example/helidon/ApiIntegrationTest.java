@@ -39,7 +39,7 @@ class ApiIntegrationTest {
     }
 
     @Test
-    void returnsCurrentUtcTime() {
+    void returnsCurrentTimeInConfiguredTimeZone() {
         try (Http1ClientResponse response = client.get("/api/time").request()) {
             assertEquals(Status.OK_200, response.status());
 
@@ -76,6 +76,40 @@ class ApiIntegrationTest {
             assertEquals(Status.BAD_REQUEST_400, response.status());
             assertEquals("left and right must be valid numbers",
                          response.as(JsonObject.class).getString("error"));
+        }
+    }
+
+    @Test
+    void runsBlockingTaskOnAVirtualThread() {
+        try (Http1ClientResponse response = client.get("/api/tasks/wait")
+                .queryParam("duration", "10")
+                .request()) {
+            assertEquals(Status.OK_200, response.status());
+
+            JsonObject body = response.as(JsonObject.class);
+            assertEquals(10, body.getInt("requestedDurationMs"));
+            assertTrue(body.getInt("elapsedDurationMs") >= 10);
+            assertTrue(body.getBoolean("virtualThread"));
+        }
+    }
+
+    @Test
+    void rejectsTaskDurationAboveConfiguredMaximum() {
+        try (Http1ClientResponse response = client.get("/api/tasks/wait")
+                .queryParam("duration", "5001")
+                .request()) {
+            assertEquals(Status.BAD_REQUEST_400, response.status());
+            assertEquals("duration must be between 1 and 5000 milliseconds",
+                         response.as(JsonObject.class).getString("error"));
+        }
+    }
+
+    @Test
+    void rejectsNonNumericTaskDuration() {
+        try (Http1ClientResponse response = client.get("/api/tasks/wait")
+                .queryParam("duration", "invalid")
+                .request()) {
+            assertEquals(Status.BAD_REQUEST_400, response.status());
         }
     }
 }

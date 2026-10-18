@@ -26,6 +26,7 @@ curl http://localhost:8080/api/greetings/Emre
 curl http://localhost:8080/api/time
 curl http://localhost:8080/api/calculations/add/12.5/7.5
 curl http://localhost:8080/api/calculations/multiply/6/7
+curl "http://localhost:8080/api/tasks/wait?duration=1000"
 ```
 
 Örnek yanıt:
@@ -37,6 +38,20 @@ curl http://localhost:8080/api/calculations/multiply/6/7
   "virtualThread": true
 }
 ```
+
+Virtual thread üzerinde çalışan blocking task örneği:
+
+```json
+{
+  "requestedDurationMs": 1000,
+  "elapsedDurationMs": 1001,
+  "threadName": "...",
+  "virtualThread": true
+}
+```
+
+Blocking task için varsayılan ve maksimum bekleme süreleri `application.yaml`
+dosyasından değiştirilebilir.
 
 Testleri çalıştırmak için:
 

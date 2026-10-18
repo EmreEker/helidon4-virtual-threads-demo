@@ -1,8 +1,10 @@
 package com.example.helidon.application;
 
+import com.example.helidon.controller.BlockingTaskHttpService;
 import com.example.helidon.controller.CalculatorHttpService;
 import com.example.helidon.controller.GreetingHttpService;
 import com.example.helidon.controller.TimeHttpService;
+import com.example.helidon.service.BlockingTaskService;
 import com.example.helidon.service.CalculatorService;
 import com.example.helidon.service.GreetingService;
 import com.example.helidon.service.TimeService;
@@ -42,9 +44,23 @@ public final class Main {
                 .asString()
                 .map(ZoneId::of)
                 .orElse(ZoneId.of("UTC"));
+        long defaultTaskDurationMs = config.get("app.task.default-duration-ms")
+                .asLong()
+                .orElse(1000L);
+        long maximumTaskDurationMs = config.get("app.task.max-duration-ms")
+                .asLong()
+                .orElse(5000L);
 
-        routing.register("/api/greetings", new GreetingHttpService(new GreetingService(greeting)))
-                .register("/api/time", new TimeHttpService(new TimeService(timeZone)))
-                .register("/api/calculations", new CalculatorHttpService(new CalculatorService()));
+        GreetingHttpService greetingHttpService = new GreetingHttpService(new GreetingService(greeting));
+        TimeHttpService timeHttpService = new TimeHttpService(new TimeService(timeZone));
+        CalculatorHttpService calculatorHttpService = new CalculatorHttpService(new CalculatorService());
+        BlockingTaskHttpService blockingTaskHttpService = new BlockingTaskHttpService(
+                new BlockingTaskService(maximumTaskDurationMs),
+                defaultTaskDurationMs);
+
+        routing.register("/api/greetings", greetingHttpService)
+                .register("/api/time", timeHttpService)
+                .register("/api/calculations", calculatorHttpService)
+                .register("/api/tasks", blockingTaskHttpService);
     }
 }

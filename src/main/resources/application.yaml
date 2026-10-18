@@ -4,3 +4,6 @@ server:
 app:
   greeting: "Merhaba"
   time-zone: "Europe/Istanbul"
+  task:
+    default-duration-ms: 1000
+    max-duration-ms: 5000
