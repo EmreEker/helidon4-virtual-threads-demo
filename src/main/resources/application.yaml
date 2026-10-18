@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+app:
+  greeting: "Merhaba"
+  time-zone: "Europe/Istanbul"
